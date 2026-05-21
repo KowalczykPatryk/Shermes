@@ -1,0 +1,6 @@
+http://localhost:7474/browser/
+https://neo4j.com/docs/
+https://neo4j.com/developer/
+https://neo4j.com/docs/cypher-cheat-sheet/25/all/
+https://graphacademy.neo4j.com/
+https://www.youtube.com/watch?v=Z1N9JzNax2k
