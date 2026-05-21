@@ -1,0 +1,18 @@
+services:
+  neo4j:
+    image: neo4j:latest
+    container_name: neo4j
+
+    ports:
+      - "7474:7474" # Web UI
+      - "7687:7687" # Bolt protocol (driver Java/Python)
+
+    environment:
+      NEO4J_AUTH: neo4j/password # username/password
+
+    volumes:
+      - neo4j_data:/data # keeps data outside the container
+
+volumes:
+  neo4j_data:
+# start container by running: docker compose up -d
