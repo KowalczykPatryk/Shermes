@@ -1,0 +1,27 @@
+[project]
+name = "shermes"
+version = "0.1.0"
+description = "Interactive investigation board application for connecting people, events, locations, and evidence"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pyside6>=6.11.1",
+]
+
+[dependency-groups]
+dev = [
+    "black>=26.5.1",
+    "pre-commit>=4.6.0",
+    "ruff>=0.15.14",
+]
+
+[tool.black]
+target-version = ["py312"]
+line-length = 88
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
