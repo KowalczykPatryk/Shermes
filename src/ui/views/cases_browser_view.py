@@ -1,5 +1,5 @@
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QIcon
+from PySide6.QtCore import QPoint, Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QInputDialog,
@@ -18,16 +18,17 @@ class CasesBrowserView(QWidget):
     Widget representing view in which folders and crime cases are presented.
     """
 
-    def __init__(self):
+    def __init__(self, BASE_DIR) -> None:
         super().__init__()
+        self.BASE_DIR = BASE_DIR
         self.tree = QTreeWidget()
         self.tree.setHeaderLabel("Cases")
-        self.tree.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self.open_menu)
 
         label = QLabel("Cases Browser")
         label.setStyleSheet("font-size: 18px; font-weight: bold;")
-        label.setAlignment(Qt.AlignCenter)
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         layout = QVBoxLayout()
         button_layout = QHBoxLayout()
@@ -43,20 +44,20 @@ class CasesBrowserView(QWidget):
 
         self.setLayout(layout)
 
-    def style_item(self, item):
-        t = item.data(0, Qt.UserRole)
+    def style_item(self, item: QTreeWidgetItem) -> None:
+        t = item.data(0, Qt.ItemDataRole.UserRole)
 
         if t == "folder":
-            item.setIcon(0, QIcon("assets/icons/folder.png"))
-            item.setBackground(0, QColor("#2b3a55"))
-            item.setForeground(0, QColor("#d0e1ff"))
+            item.setIcon(
+                0, QIcon(str(self.BASE_DIR / "src" / "assets" / "icons" / "folder.png"))
+            )
 
         elif t == "case":
-            item.setIcon(0, QIcon("assets/icons/case.png"))
-            item.setBackground(0, QColor("#3a2b2b"))
-            item.setForeground(0, QColor("#ffd0d0"))
+            item.setIcon(
+                0, QIcon(str(self.BASE_DIR / "src" / "assets" / "icons" / "case.png"))
+            )
 
-    def open_menu(self, position):
+    def open_menu(self, position: QPoint) -> None:
         item = self.tree.itemAt(position)
         if item:
             self.tree.setCurrentItem(item)
@@ -68,18 +69,18 @@ class CasesBrowserView(QWidget):
             menu.addAction("Add Case", self.add_case)
 
         else:
-            item_type = item.data(0, Qt.UserRole)
+            item_type = item.data(0, Qt.ItemDataRole.UserRole)
 
             if item_type == "folder":
                 menu.addAction("Add Case", self.add_case)
                 menu.addAction("Add Folder", self.add_folder)
 
-            menu.addAction("Rename")
-            menu.addAction("Delete")
+            menu.addAction("Rename", lambda: self.rename_item(item))
+            menu.addAction("Delete", lambda: self.delete_item(item))
 
         menu.exec(self.tree.viewport().mapToGlobal(position))
 
-    def add_folder(self):
+    def add_folder(self) -> None:
         current = self.tree.currentItem()
 
         name, ok = QInputDialog.getText(self, "Add Folder", "Folder name:")
@@ -87,7 +88,7 @@ class CasesBrowserView(QWidget):
             return
 
         new_folder = QTreeWidgetItem([name])
-        new_folder.setData(0, Qt.UserRole, "folder")
+        new_folder.setData(0, Qt.ItemDataRole.UserRole, "folder")
         self.style_item(new_folder)
 
         # if no item is selected then top level item
@@ -97,7 +98,7 @@ class CasesBrowserView(QWidget):
 
         # if selected item is folder then add to it, else add to parent folder,
         # if no parent then top level item
-        if current.data(0, Qt.UserRole) == "folder":
+        if current.data(0, Qt.ItemDataRole.UserRole) == "folder":
             current.addChild(new_folder)
         else:
             # if current item is case then add to its parent folder,
@@ -108,7 +109,7 @@ class CasesBrowserView(QWidget):
             else:
                 self.tree.addTopLevelItem(new_folder)
 
-    def add_case(self):
+    def add_case(self) -> None:
         """
         Adds case with given name to the folder with given name in the tree widget.
         """
@@ -119,7 +120,7 @@ class CasesBrowserView(QWidget):
             return
 
         new_case = QTreeWidgetItem([name])
-        new_case.setData(0, Qt.UserRole, "case")
+        new_case.setData(0, Qt.ItemDataRole.UserRole, "case")
         self.style_item(new_case)
 
         # if no item is selected then top level item
@@ -127,7 +128,7 @@ class CasesBrowserView(QWidget):
             self.tree.addTopLevelItem(new_case)
             return
 
-        if current.data(0, Qt.UserRole) == "folder":
+        if current.data(0, Qt.ItemDataRole.UserRole) == "folder":
             current.addChild(new_case)
         else:
             parent = current.parent()
@@ -135,3 +136,22 @@ class CasesBrowserView(QWidget):
                 parent.addChild(new_case)
             else:
                 self.tree.addTopLevelItem(new_case)
+
+    def rename_item(self, item: QTreeWidgetItem) -> None:
+        """
+        Renames given item in the tree widget to the given name.
+        """
+        name, ok = QInputDialog.getText(self, "Rename Item", "New name:")
+        if ok and name:
+            item.setText(0, name)
+
+    def delete_item(self, item: QTreeWidgetItem) -> None:
+        """
+        Deletes given item from the tree widget.
+        """
+        parent = item.parent()
+        if parent:
+            parent.removeChild(item)
+        else:
+            index = self.tree.indexOfTopLevelItem(item)
+            self.tree.takeTopLevelItem(index)
