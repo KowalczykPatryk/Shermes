@@ -34,4 +34,5 @@ Stack:
 * Neo4j
 * PySide6
 
+Development setup is described in the dev_setup/README.md
 
