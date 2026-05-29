@@ -1,7 +1,7 @@
 services:
   neo4j:
     image: neo4j:latest
-    container_name: neo4j
+    container_name: neo4j_shermes
 
     ports:
       - "7474:7474" # Web UI
@@ -11,8 +11,8 @@ services:
       NEO4J_AUTH: neo4j/password # username/password
 
     volumes:
-      - neo4j_data:/data # keeps data outside the container
+      - neo4j_shermes_data:/data # keeps data outside the container
 
 volumes:
-  neo4j_data:
+  neo4j_shermes_data:
 # start container by running: docker compose up -d

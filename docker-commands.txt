@@ -1,5 +1,0 @@
-docker compose up -d # first start that will download image
-docker compose stop # stops container
-docker compose start # starts container
-docker compose down # erases container but volume is not erased
-docker compose down -v # erases container with all the data in volume
