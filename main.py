@@ -3,6 +3,8 @@ from pathlib import Path
 
 from PySide6.QtWidgets import QApplication
 
+from src.database.neo4j_client import Neo4jClient
+from src.repositories.folder_repository import FolderRepository
 from src.ui.main_window import MainWindow
 from src.utils.utils import load_stylesheet
 
@@ -14,6 +16,8 @@ if __name__ == "__main__":
     DARK_MODE_DEFAULT = False
 
     BASE_DIR = Path(__file__).resolve().parent
+
+    FolderRepository(Neo4jClient()).create_root_folder()
 
     app = QApplication(sys.argv)
     if DARK_MODE_DEFAULT:

@@ -28,6 +28,7 @@ class MainWindow(QMainWindow):
     TOGGLE_BUTTON_TEXT = "☰"
 
     def __init__(self, app: QApplication, BASE_DIR: Path, dark_mode: bool) -> None:
+
         super().__init__()
         self.app = app
         self.BASE_DIR = BASE_DIR
@@ -84,8 +85,9 @@ class MainWindow(QMainWindow):
         self.stack = QStackedWidget()
 
         self.cases_browser_view = CasesBrowserView(self.BASE_DIR)
-        self.board_view = BoardView()
-        self.timeline_view = TimelineView()
+        self.cases_browser_view.load_data()
+        self.board_view = BoardView(self.BASE_DIR)
+        self.timeline_view = TimelineView(self.BASE_DIR)
 
         self.stack.addWidget(self.cases_browser_view)
         self.stack.addWidget(self.board_view)

@@ -21,6 +21,7 @@ permission denied while trying to connect to the docker API at unix:///var/run/d
 Docker works as system daemon (root-owned) and access to it have:
 - root
 - users in docker group
+
 To add user to docker group:
 ```bash
 sudo usermod -aG docker $USER

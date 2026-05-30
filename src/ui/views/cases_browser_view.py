@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
@@ -5,6 +7,7 @@ from PySide6.QtWidgets import (
     QInputDialog,
     QLabel,
     QMenu,
+    QMessageBox,
     QPushButton,
     QTreeWidget,
     QTreeWidgetItem,
@@ -12,14 +15,24 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from src.database.neo4j_client import Neo4jClient
+from src.repositories.case_repository import CaseRepository
+from src.repositories.folder_repository import FolderRepository
+
 
 class CasesBrowserView(QWidget):
     """
     Widget representing view in which folders and crime cases are presented.
     """
 
-    def __init__(self, BASE_DIR) -> None:
+    ITEM_TYPE_ROLE = Qt.ItemDataRole.UserRole
+    ITEM_ID_ROLE = Qt.ItemDataRole.UserRole + 1
+
+    def __init__(self, BASE_DIR: Path) -> None:
         super().__init__()
+        client = Neo4jClient()
+        self.folder_repository = FolderRepository(client)
+        self.case_repository = CaseRepository(client)
         self.BASE_DIR = BASE_DIR
         self.tree = QTreeWidget()
         self.tree.setHeaderLabel("Cases")
@@ -81,77 +94,189 @@ class CasesBrowserView(QWidget):
         menu.exec(self.tree.viewport().mapToGlobal(position))
 
     def add_folder(self) -> None:
-        current = self.tree.currentItem()
+        """
+        Adds folder with given name to the folder with given name in the tree widget.
+        """
+        ui_selected_item = self.tree.currentItem()
 
         name, ok = QInputDialog.getText(self, "Add Folder", "Folder name:")
         if not ok or not name:
             return
 
-        new_folder = QTreeWidgetItem([name])
-        new_folder.setData(0, Qt.ItemDataRole.UserRole, "folder")
-        self.style_item(new_folder)
+        parent_item = ui_selected_item
 
-        # if no item is selected then top level item
-        if current is None:
-            self.tree.addTopLevelItem(new_folder)
-            return
+        # if CASE selected then go up
+        if parent_item and parent_item.data(0, self.ITEM_TYPE_ROLE) == "case":
+            parent_item = parent_item.parent()
 
-        # if selected item is folder then add to it, else add to parent folder,
-        # if no parent then top level item
-        if current.data(0, Qt.ItemDataRole.UserRole) == "folder":
-            current.addChild(new_folder)
+        # if parent_item is QTreeWidget then in database we want to add folder
+        # to root folder
+        if parent_item is None:
+            parent_folder = self.folder_repository.get_root_folder()
         else:
-            # if current item is case then add to its parent folder,
-            # if no parent then top level item
-            parent = current.parent()
-            if parent is not None:
-                parent.addChild(new_folder)
-            else:
-                self.tree.addTopLevelItem(new_folder)
+            parent_folder = self.folder_repository.get_folder(
+                parent_item.data(0, self.ITEM_ID_ROLE)
+            )
+
+        # create folder in database and get its object representation
+        folder = self.folder_repository.create_folder(
+            parent_folder.id,
+            name,
+        )
+
+        # create UI item for the folder and set its properties
+        ui_item = QTreeWidgetItem([folder.name])
+
+        ui_item.setData(0, self.ITEM_TYPE_ROLE, "folder")
+        ui_item.setData(0, self.ITEM_ID_ROLE, folder.id)
+
+        self.style_item(ui_item)
+
+        # if parent_item is None, it means that we want to add folder to the root of
+        # the tree widget, so we add it as top level item, otherwise
+        # we add it as child of the parent item
+        if parent_item is None:
+            self.tree.addTopLevelItem(ui_item)
+        else:
+            parent_item.addChild(ui_item)
 
     def add_case(self) -> None:
-        """
-        Adds case with given name to the folder with given name in the tree widget.
-        """
         current = self.tree.currentItem()
 
         name, ok = QInputDialog.getText(self, "Add Case", "Case name:")
         if not ok or not name:
             return
 
-        new_case = QTreeWidgetItem([name])
-        new_case.setData(0, Qt.ItemDataRole.UserRole, "case")
+        parent_item = current
+
+        if parent_item is not None:
+            item_type = parent_item.data(0, self.ITEM_TYPE_ROLE)
+
+            # if CASE selected then go up to folder
+            if item_type == "case":
+                parent_item = parent_item.parent()
+
+        if parent_item is None:
+            root_folder = self.folder_repository.get_root_folder()
+            parent_folder_id = root_folder.id
+        else:
+            parent_folder_id = parent_item.data(0, self.ITEM_ID_ROLE)
+
+        case = self.case_repository.create_case(
+            parent_folder_id,
+            name,
+        )
+
+        new_case = QTreeWidgetItem([case.name])
+
+        new_case.setData(0, self.ITEM_TYPE_ROLE, "case")
+        new_case.setData(0, self.ITEM_ID_ROLE, case.id)
+
         self.style_item(new_case)
 
-        # if no item is selected then top level item
-        if current is None:
+        if parent_item is None:
             self.tree.addTopLevelItem(new_case)
-            return
-
-        if current.data(0, Qt.ItemDataRole.UserRole) == "folder":
-            current.addChild(new_case)
         else:
-            parent = current.parent()
-            if parent:
-                parent.addChild(new_case)
-            else:
-                self.tree.addTopLevelItem(new_case)
+            parent_item.addChild(new_case)
 
     def rename_item(self, item: QTreeWidgetItem) -> None:
         """
         Renames given item in the tree widget to the given name.
         """
-        name, ok = QInputDialog.getText(self, "Rename Item", "New name:")
-        if ok and name:
-            item.setText(0, name)
+
+        if item.data(0, self.ITEM_TYPE_ROLE) == "folder":
+            folder_id = item.data(0, self.ITEM_ID_ROLE)
+            if folder_id is not None:
+                new_name, ok = QInputDialog.getText(self, "Rename Folder", "New name:")
+                if ok and new_name:
+                    self.folder_repository.rename_folder(folder_id, new_name)
+                    item.setText(0, new_name)
+        elif item.data(0, self.ITEM_TYPE_ROLE) == "case":
+            case_id = item.data(0, self.ITEM_ID_ROLE)
+            if case_id is not None:
+                new_name, ok = QInputDialog.getText(self, "Rename Case", "New name:")
+                if ok and new_name:
+                    self.case_repository.rename_case(case_id, new_name)
+                    item.setText(0, new_name)
 
     def delete_item(self, item: QTreeWidgetItem) -> None:
         """
-        Deletes given item from the tree widget.
+        Deletes given item from the tree widget and database.
+        If item is folder, deletes all its subfolders and cases as well.
         """
+
+        reply = QMessageBox.question(self, "Delete", "Are you sure?")
+        if reply == QMessageBox.StandardButton.No:
+            return
+        item_type = item.data(0, self.ITEM_TYPE_ROLE)
+        item_id = item.data(0, self.ITEM_ID_ROLE)
+
+        # delete from database
+        if item_type == "folder":
+            self.folder_repository.delete_folder(item_id)
+        elif item_type == "case":
+            self.case_repository.delete_case(item_id)
+
+        # delete from UI
         parent = item.parent()
         if parent:
             parent.removeChild(item)
         else:
             index = self.tree.indexOfTopLevelItem(item)
             self.tree.takeTopLevelItem(index)
+
+    def load_data(self) -> None:
+        """
+        Loads folders and cases from the database and builds tree widget.
+        """
+        self.tree.clear()
+
+        root_folder = self.folder_repository.get_root_folder()
+
+        children_folders = self.folder_repository.get_children(root_folder.id)
+        children_cases = self.case_repository.get_cases_in_folder(root_folder.id)
+
+        # folders
+        for folder in children_folders:
+            item = self._build_folder_item(folder)
+            self.tree.addTopLevelItem(item)
+
+        # cases (ROOT-level cases)
+        for case in children_cases:
+            item = QTreeWidgetItem([case.name])
+
+            item.setData(0, self.ITEM_TYPE_ROLE, "case")
+            item.setData(0, self.ITEM_ID_ROLE, case.id)
+
+            self.style_item(item)
+
+            self.tree.addTopLevelItem(item)
+
+    def _build_folder_item(self, folder) -> QTreeWidgetItem:
+        """
+        Builds tree widget item for given folder and its children folders
+        and cases recursively.
+        """
+        item = QTreeWidgetItem([folder.name])
+
+        item.setData(0, self.ITEM_TYPE_ROLE, "folder")
+        item.setData(0, self.ITEM_ID_ROLE, folder.id)
+
+        self.style_item(item)
+
+        # subfolders
+        for subfolder in self.folder_repository.get_children(folder.id):
+            item.addChild(self._build_folder_item(subfolder))
+
+        # cases inside folder
+        for case in self.case_repository.get_cases_in_folder(folder.id):
+            case_item = QTreeWidgetItem([case.name])
+
+            case_item.setData(0, self.ITEM_TYPE_ROLE, "case")
+            case_item.setData(0, self.ITEM_ID_ROLE, case.id)
+
+            self.style_item(case_item)
+
+            item.addChild(case_item)
+
+        return item
