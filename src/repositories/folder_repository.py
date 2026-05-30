@@ -85,8 +85,8 @@ class FolderRepository:
 
     def create_root_folder(self) -> Folder:
         """
-        Creates root folder if it doesn't exist. Root folder is a system folder
-        in which all other folders are.
+        Creates root folder if it doesn't exist. Root folder is a system folder in
+        which all other folders are.
         """
         with self.client.driver.session() as session:
             result = session.run(

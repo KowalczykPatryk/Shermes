@@ -66,6 +66,12 @@ Black automatically formats Python code according to a consistent, opinionated s
 uv run black .
 ```
 
+### Check entire project
+
+```bash id="bf1"
+uv run black . --check
+```
+
 ### Format a single file
 
 ```bash id="bf2"
