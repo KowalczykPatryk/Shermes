@@ -23,7 +23,6 @@ Functionality:
 * editing existing nodes and edges
 * visualizing them on the board
 * searching and filtering information
-* drag & drop
 
 Form:
 
@@ -36,4 +35,10 @@ Stack:
 
 Development setup is described in the dev_setup/README.md  
 Database setup is described in the db_setup/README.md
+
+
+Names explained:
+- neo4j_shermes - name of the Docker container
+- neo4j_shermes_data - name of the Docker volume
+- neo4j - name of the Neo4j database
 

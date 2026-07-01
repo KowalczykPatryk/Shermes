@@ -1,18 +1,49 @@
+# Docker Compose configuration for the Shermes Neo4j database.
+
 services:
+  # Neo4j graph database used by the application.
   neo4j:
-    image: neo4j:latest
+    # Exact Neo4j Docker image version used by this project.
+    image: neo4j:2026.05.0
+
+    # Fixed container name for easier Docker commands and debugging.
     container_name: neo4j_shermes
 
+    # Restart automatically after a crash or Docker restart,
+    # unless the container was explicitly stopped.
+    restart: unless-stopped
+
     ports:
-      - "7474:7474" # Web UI
-      - "7687:7687" # Bolt protocol (driver Java/Python)
+      # Neo4j Browser and HTTP API.
+      # Bound to localhost, so it is unavailable from other devices.
+      - "127.0.0.1:7474:7474"
+
+      # Bolt protocol used by the Python Neo4j driver.
+      # Bound to localhost for the same security reason.
+      - "127.0.0.1:7687:7687"
 
     environment:
-      NEO4J_AUTH: neo4j/password # username/password
+      # Read Neo4j credentials from the Docker secret mounted below.
+      # The secret appears inside the container at this path.
+      NEO4J_AUTH_FILE: /run/secrets/neo4j_auth_file
+
+    secrets:
+      # Mount the declared secret inside the container.
+      - neo4j_auth_file
 
     volumes:
-      - neo4j_shermes_data:/data # keeps data outside the container
+      # Persist Neo4j databases and transaction logs outside the container.
+      # The data remains available after recreating the container.
+      - neo4j_shermes_data:/data
 
+# Docker secret definitions.
+secrets:
+  neo4j_auth_file:
+    # Local file containing Neo4j authentication data.
+    # Keep this file out of Git.
+    file: ./secrets/neo4j_auth.txt
+
+# Named Docker volume definitions.
 volumes:
+  # Persistent storage mounted by Neo4j at /data.
   neo4j_shermes_data:
-# start container by running: docker compose up -d

@@ -7,7 +7,7 @@ QWidget {
 /* ---------------- Buttons ---------------- */
 
 QPushButton {
-    background-color: #995F2F;
+    background-color: #663f1f;
     color: #E4D6A9;
     border: none;
     border-radius: 6px;
@@ -68,14 +68,85 @@ QMenu::item:selected {
     background-color: #995F2F;
 }
 
-/* ---------------- Scrollbars ---------------- */
-
-QScrollBar:vertical {
-    background: #622B14;
-    width: 10px;
+QFrame#woodFrame {
+    border-width: 15px;
+    border-style: solid;
+    border-image: url(src/assets/background/wooden_frame.png) 55 55 55 55 stretch stretch;
 }
 
-QScrollBar::handle:vertical {
-    background: #978F66;
-    border-radius: 5px;
+/* ---------------- Graphics View ---------------- */
+
+QGraphicsView {
+    border: none;
+}
+
+QLabel#casesBrowserLabel {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+# ---------------- Board Controls ----------------
+
+QPushButton#fitBoardButton {
+    background-color: #f7eadf;
+    font-weight: bold;
+    color: #622B14;
+    border: none;
+    border-radius: 6px;
+}
+QPushButton#zoomInButton,
+QPushButton#zoomOutButton {
+    min-width: 20px;
+    max-width: 20px;
+    min-height: 20px;
+    max-height: 20px;
+
+    padding: 3px;
+    font-weight: bold;
+
+    font-size: 14px;
+    background-color: #f7eadf;
+    color: #622B14;
+    border: none;
+    border-radius: 13px;
+}
+
+# ---------------- Board Title ----------------
+
+QLabel#boardTitlePaper {
+    background: transparent;
+    border: none;
+}
+
+QLabel#boardTitle {
+    background: transparent;
+    border: none;
+
+    color: red;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+#---------------- Controls ----------------
+
+QFrame#createControls,
+QFrame#selectedControls,
+QFrame#analysisControls,
+QFrame#clearControls {
+    background-color: #8a5a35;
+    border: 1px solid #0e0d0c;
+    border-radius: 8px;
+}
+
+QLabel#boardControlGroupTitle {
+    color: #f7eadf;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 4px;
+    border-radius: 6px;
+    border: 1px solid #0e0d0c;
+}
+
+QLabel#newTypeLabel {
+    background-color: #8a5a35;
 }

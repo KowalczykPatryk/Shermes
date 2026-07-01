@@ -1,6 +1,6 @@
 # Dev Setup – Shermes
 
-This document describes the development tooling used in the Shermes project (PySide6 application). The goal is to ensure a consistent workflow for dependency management, running the project, linting, and code formatting.
+This document describes the development tooling used in this project (PySide6 application). The goal is to ensure a consistent workflow for dependency management, running the project, linting, and code formatting.
 
 ---
 
@@ -34,7 +34,7 @@ uv sync
 ### Run the project
 
 ```bash id="uv4"
-uv run python main.py
+uv run main.py
 ```
 
 ### Run any tool inside the environment
