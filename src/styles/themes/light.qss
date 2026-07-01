@@ -87,6 +87,7 @@ QLabel#casesBrowserLabel {
     font-weight: bold;
 }
 
+/* ---------------- Board Controls ---------------- */
 QPushButton#fitBoardButton {
     background-color: #f7eadf;
     font-weight: bold;
@@ -111,6 +112,7 @@ QPushButton#zoomOutButton {
     border-radius: 13px;
 }
 
+/* ---------------- Board Title ---------------- */
 QLabel#boardTitlePaper {
     background: transparent;
     border: none;
@@ -125,7 +127,7 @@ QLabel#boardTitle {
     font-weight: bold;
 }
 
-
+/* ---------------- Controls ---------------- */
 QFrame#createControls,
 QFrame#selectedControls,
 QFrame#analysisControls,
