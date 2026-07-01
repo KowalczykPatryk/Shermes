@@ -6,3 +6,4 @@ https://neo4j.com/docs/cypher-cheat-sheet/25/all/
 https://graphacademy.neo4j.com/
 pyside6 tutorial: https://www.youtube.com/watch?v=Z1N9JzNax2k
 color palletes: https://colorhunt.co/palettes/vintage
+https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/index.html#

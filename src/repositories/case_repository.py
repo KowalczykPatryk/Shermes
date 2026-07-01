@@ -1,8 +1,4 @@
-"""
-Contains repository for managing case entities.
-Repository Design Pattern is used to abstract away database
-operations from the rest of the application.
-"""
+"""Repository for case entities and their case-owned board data."""
 
 from src.database.neo4j_client import Neo4jClient
 from src.models.case import Case
@@ -13,111 +9,87 @@ class CaseRepository:
         self.client = client
 
     def create_case(self, folder_id: str, case_name: str) -> Case:
-        """
-        Creates a new case with given name inside folder with given id.
-        """
-
+        """Create a case inside a folder."""
         with self.client.driver.session() as session:
             result = session.run(
                 """
-                MATCH (f:Folder)
-                WHERE elementId(f) = $folder_id
-
-                CREATE (c:Case {
-                    name: $case_name
-                })
-
-                CREATE (f)-[:CONTAINS]->(c)
-                RETURN elementId(c) AS id, c.name AS name
+                MATCH (folder:Folder)
+                WHERE elementId(folder) = $folder_id
+                CREATE (case:Case {name: $case_name})
+                CREATE (folder)-[:CONTAINS]->(case)
+                RETURN elementId(case) AS id, case.name AS name
                 """,
                 folder_id=folder_id,
                 case_name=case_name,
             )
             record = result.single()
-            if record is None:
-                raise ValueError("Case not found")
 
-            return Case(
-                id=record["id"],
-                name=record["name"],
-            )
+        if record is None:
+            raise ValueError("Parent folder not found.")
+        return Case(id=record["id"], name=record["name"])
 
     def delete_case(self, case_id: str) -> None:
-        """
-        Deletes case with given id from the database.
-        """
+        """Delete a case together with every board node and relationship it owns."""
         with self.client.driver.session() as session:
+            # Delete board nodes first. Detaching them also removes RELATED_TO
+            # edges, leaving no orphan investigation data after the case goes.
             session.run(
                 """
-                MATCH (c:Case)
-                WHERE elementId(c) = $case_id
-
-                DETACH DELETE c
+                MATCH (case:Case)-[:HAS_BOARD_NODE]->(board_node:BoardNode)
+                WHERE elementId(case) = $case_id
+                DETACH DELETE board_node
                 """,
                 case_id=case_id,
-            )
+            ).consume()
+            session.run(
+                """
+                MATCH (case:Case)
+                WHERE elementId(case) = $case_id
+                DETACH DELETE case
+                """,
+                case_id=case_id,
+            ).consume()
 
     def rename_case(self, case_id: str, new_name: str) -> None:
-        """
-        Changes name of the case with given id to given new name.
-        """
+        """Change the displayed case name."""
         with self.client.driver.session() as session:
             session.run(
                 """
-                MATCH (c:Case)
-                WHERE elementId(c) = $case_id
-
-                SET c.name = $new_name
+                MATCH (case:Case)
+                WHERE elementId(case) = $case_id
+                SET case.name = $new_name
                 """,
                 case_id=case_id,
                 new_name=new_name,
-            )
+            ).consume()
 
     def get_case(self, case_id: str) -> Case:
-        """
-        Returns case with given id.
-        """
+        """Return one case."""
         with self.client.driver.session() as session:
             result = session.run(
                 """
-                MATCH (c:Case)
-                WHERE elementId(c) = $case_id
-                RETURN elementId(c) AS id, c.name AS name
+                MATCH (case:Case)
+                WHERE elementId(case) = $case_id
+                RETURN elementId(case) AS id, case.name AS name
                 """,
                 case_id=case_id,
             )
-
             record = result.single()
 
-            if record is None:
-                raise ValueError("Case not found")
-
-            return Case(
-                id=record["id"],
-                name=record["name"],
-            )
+        if record is None:
+            raise ValueError("Case not found.")
+        return Case(id=record["id"], name=record["name"])
 
     def get_cases_in_folder(self, folder_id: str) -> list[Case]:
-        """
-        Returns list of cases that are directly inside folder with given id.
-        """
+        """Return cases directly contained by a folder."""
         with self.client.driver.session() as session:
             result = session.run(
                 """
-                MATCH (f:Folder)-[:CONTAINS]->(c:Case)
-                WHERE elementId(f) = $folder_id
-                RETURN elementId(c) AS id, c.name AS name
+                MATCH (folder:Folder)-[:CONTAINS]->(case:Case)
+                WHERE elementId(folder) = $folder_id
+                RETURN elementId(case) AS id, case.name AS name
+                ORDER BY case.name
                 """,
                 folder_id=folder_id,
             )
-
-            cases = []
-            for record in result:
-                cases.append(
-                    Case(
-                        id=record["id"],
-                        name=record["name"],
-                    )
-                )
-
-            return cases
+            return [Case(id=record["id"], name=record["name"]) for record in result]

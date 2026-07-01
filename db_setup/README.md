@@ -54,14 +54,6 @@ After starting container:
 - Neo4j Browser UI -> http://localhost:7474
 - Bolt connection (Python / drivers) -> bolt://localhost:7687
 
-## Default credentials
-username: neo4j  
-password: password
-
-You can change them in `docker-compose.yml`:
-```YAML
-NEO4J_AUTH: neo4j/your_password
-```
 
 ## Data persistence
 
@@ -100,3 +92,22 @@ If you prefer GUI app instead of Docker run this script:
 ./neo4j_desktop.sh
 ```
 It runs desktop app located in the ```"$HOME/neo4j-desktop-2.1.4-x86_64.AppImage"```. The executable file can be download from https://neo4j.com/download/.
+
+
+## Password management
+
+Generating strong random password:
+```bash
+openssl rand -base64 32
+```
+Password with only hex values:
+```bash
+openssl rand -hex 32
+```
+
+Saving password:
+```bash
+mkdir -p secrets
+printf 'neo4j/%s\n' "$(openssl rand -hex 32)" > secrets/neo4j_auth.txt
+chmod 600 secrets/neo4j_auth.txt
+```

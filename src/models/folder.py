@@ -1,5 +1,6 @@
 """
-Contains dataclass representing folder in which cases are stored.
+Represents a folder that can contain subfolders and cases.
+It is used in the folder repository.
 """
 
 from dataclasses import dataclass
@@ -7,7 +8,11 @@ from dataclasses import dataclass
 
 @dataclass
 class Folder:
-    id: str  # elementId()
+    """
+    Represents a folder that can contain subfolders and cases.
+    It is used in the folder repository.
+    """
+
+    id: str
     name: str
-    # flag indicating whether folder is system folder (e.g. "All Cases") or user-created
     system: bool = False

@@ -12,7 +12,7 @@ if __name__ == "__main__":
 
     MAIN_WINDOW_TITLE = "Shermes"
     MAIN_WINDOW_WIDTH = 1000
-    MAIN_WINDOW_HEIGHT = 600
+    MAIN_WINDOW_HEIGHT = 800
     DARK_MODE_DEFAULT = False
 
     BASE_DIR = Path(__file__).resolve().parent
