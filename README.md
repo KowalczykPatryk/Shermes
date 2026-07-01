@@ -42,3 +42,18 @@ Names explained:
 - neo4j_shermes_data - name of the Docker volume
 - neo4j - name of the Neo4j database
 
+### UI Screenshots:
+
+<img width="1004" height="840" alt="Screenshot from 2026-07-01 23-27-31" src="https://github.com/user-attachments/assets/2f6b6dda-f48b-4e8d-9144-61506de8b500" />
+<img width="1004" height="840" alt="Screenshot from 2026-07-01 23-27-38" src="https://github.com/user-attachments/assets/03da4ca7-ff6c-4add-9c0b-f8d9f6f4a4ef" />
+<img width="1004" height="840" alt="Screenshot from 2026-07-01 23-28-49" src="https://github.com/user-attachments/assets/ec0d5f81-f692-4e3e-ad86-ae82040421b2" />
+<img width="1004" height="840" alt="Screenshot from 2026-07-01 23-37-46" src="https://github.com/user-attachments/assets/29421e4e-cc72-462f-b26c-af010375ca69" />
+<img width="1004" height="840" alt="Screenshot from 2026-07-01 23-38-00" src="https://github.com/user-attachments/assets/478b29f3-00fb-48ff-8fac-838dfae512ca" />
+<img width="1004" height="840" alt="Screenshot from 2026-07-01 23-38-05" src="https://github.com/user-attachments/assets/547e895f-1fe6-43ea-9dff-1bc0ad2c32f9" />
+
+### Database graph:
+
+<img width="388" height="389" alt="Screenshot from 2026-07-01 22-46-27" src="https://github.com/user-attachments/assets/0e04e134-96c6-4ba1-ba9a-519bddb53910" />
+<img width="1440" height="560" alt="Screenshot from 2026-07-01 22-50-07" src="https://github.com/user-attachments/assets/a8fc77ec-ee42-4463-8c71-cc1a6e560226" />
+
+
